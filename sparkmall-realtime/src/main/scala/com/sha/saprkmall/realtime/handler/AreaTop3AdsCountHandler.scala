@@ -43,7 +43,6 @@ object AreaTop3AdsCountHandler {
     val areaAdsDaycountDstream: DStream[(String, Long)] = areaCityAdsDayDStream.map { case (areaCityAdsDay, count) =>
       val areaCityAdsDayArray: Array[String] = areaCityAdsDay.split(":")
       val area = areaCityAdsDayArray(0)
-      val city = areaCityAdsDayArray(1)
       val ads = areaCityAdsDayArray(2)
       val date = areaCityAdsDayArray(3)
       (area + ":" + ads + ":" + date, count)
@@ -72,17 +71,17 @@ object AreaTop3AdsCountHandler {
     top3AreaAdsDateCount.foreachRDD { rdd =>
       rdd.foreachPartition { rdd2 =>
         val jedisClient: Jedis = RedisUtil.getJedisClient
-        rdd2.foreach{case (datekey,areaAdsCountTop3Map) =>
-
+        rdd2.foreach { case (datekey, areaAdsCountTop3Map) =>
+          //将datekey ,Map[area,Map[ads,count]]  转化为  datekey ,Map[area,JSON]
           val areaAdsCountMapJson: Map[String, String] = areaAdsCountTop3Map.map { case (area, adsCount) =>
             val adsCountJson: JSONObject = JSONObject(adsCount)
             (area, adsCountJson.toString(JSONFormat.defaultFormatter))
           }
 
           import scala.collection.JavaConversions._
-          jedisClient.hmset(datekey,areaAdsCountMapJson)
-          jedisClient.close()
+          jedisClient.hmset(datekey, areaAdsCountMapJson)
         }
+        jedisClient.close()
       }
 
 

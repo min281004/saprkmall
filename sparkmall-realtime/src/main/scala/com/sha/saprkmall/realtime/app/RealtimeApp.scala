@@ -8,7 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import com.sha.saprkmall.realtime.handler.{AreaCityAdsDaycountHandler, AreaTop3AdsCountHandler, BlackListHandler}
+import com.sha.saprkmall.realtime.handler.{AreaCityAdsDaycountHandler, AreaTop3AdsCountHandler, BlackListHandler, LastHourAdsCountHandler}
 /**
   * @author shamin
   * @create 2019-04-12 20:24
@@ -35,7 +35,7 @@ object RealtimeApp {
     //过滤掉黑名单
     val filteredBlackListDStream: DStream[AdsLog] = BlackListHandler.filterBlackList(ssc,adsLogDStream)
     //需求五  更新日志信息
-    BlackListHandler.updateUserAdsCount(filteredBlackListDStream)
+ //   BlackListHandler.updateUserAdsCount(filteredBlackListDStream)
     //测试消费kafka的数据成功
 //   adsLogDStream.foreachRDD{
 //     rdd =>
@@ -43,10 +43,13 @@ object RealtimeApp {
 //   }
 
     //需求六
-    val areaCityAdsDayDStream: DStream[(String, Long)] = AreaCityAdsDaycountHandler.handle(ssc.sparkContext,filteredBlackListDStream)
+  //  val areaCityAdsDayDStream: DStream[(String, Long)] = AreaCityAdsDaycountHandler.handle(ssc.sparkContext,filteredBlackListDStream)
 
     //需求七
-    AreaTop3AdsCountHandler.handle(areaCityAdsDayDStream)
+ //   AreaTop3AdsCountHandler.handle(areaCityAdsDayDStream)
+
+    //需求八
+    LastHourAdsCountHandler.handle(filteredBlackListDStream)
     //开启任务
     ssc.start()
     ssc.awaitTermination()
